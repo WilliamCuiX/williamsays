@@ -4,9 +4,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { useTheme } from "@/context/theme-context"
+import { useEffect, useState } from "react"
+import type { PostData } from "@/lib/posts"
 
 export function HomeContent() {
   const { theme } = useTheme()
+  const [posts, setPosts] = useState<PostData[]>([])
+
+  useEffect(() => {
+    async function loadPosts() {
+      const response = await fetch('/api/posts')
+      const data = await response.json()
+      setPosts(data)
+    }
+    loadPosts()
+  }, [])
 
   return (
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-white'} ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
@@ -32,15 +44,23 @@ export function HomeContent() {
       <section className="container mx-auto px-4 py-12">
         <h2 className="text-2xl font-bold mb-8">Latest posts</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className={`overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-              <div className="relative aspect-video">
-                <div className="absolute inset-0 bg-[url('/post-cover-01.png')] bg-cover bg-center" />
-              </div>
-              <div className="p-4">
-                <h3 className="font-semibold">The 5th Age of Technology</h3>
-              </div>
-            </Card>
+          {posts.map((post) => (
+            <div key={post.id}>
+              <a href={`/posts/${post.id}`} className="block">
+                <Card className={`overflow-hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                  <div className="relative aspect-video">
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${post.coverImage || '/post-cover-01.png'})` }}
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold">{post.title}</h3>
+                    <p className="text-sm text-gray-500 mt-2">{post.description}</p>
+                  </div>
+                </Card>
+              </a>
+            </div>
           ))}
         </div>
       </section>
